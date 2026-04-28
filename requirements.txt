@@ -1,0 +1,11 @@
+pandas
+pyarrow
+fastapi
+uvicorn
+pydantic
+groq
+python-dotenv
+pyyaml
+datasets
+streamlit
+

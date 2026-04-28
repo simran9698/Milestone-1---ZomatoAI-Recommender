@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zomato AI | Restaurant Recommender</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="hero-overlay"></div>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i data-lucide="utensils" class="logo-icon"></i>
+                <h1>Zomato<span>AI Recommender</span></h1>
+            </div>
+            <h2>Craving something specific?</h2>
+            <p>Let Zomato AI Recommender find the perfect table for your taste, mood, and budget.</p>
+        </header>
+
+        <main>
+            <section class="search-card">
+                <form id="recommendation-form">
+                    <div class="form-group">
+                        <label for="location"><i data-lucide="map-pin"></i> Location</label>
+                        <select id="location" required>
+                            <option value="" disabled selected>Loading locations...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cuisine"><i data-lucide="chef-hat"></i> Cuisine (Optional)</label>
+                        <input type="text" id="cuisine" placeholder="e.g., Italian, Chinese">
+                    </div>
+                    <div class="form-group">
+                        <label for="min_rating"><i data-lucide="star"></i> Min Rating</label>
+                        <div class="rating-slider-container">
+                            <input type="range" id="min_rating" min="1" max="5" step="0.1" value="4.0" oninput="document.getElementById('rating-value').textContent = this.value">
+                            <span id="rating-value" class="badge">4.0</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="max_budget"><i data-lucide="banknote"></i> Max Budget</label>
+                        <input type="number" id="max_budget" min="0" placeholder="Enter budget in ₹" value="1000">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="extra_preferences"><i data-lucide="sparkles"></i> Extra Preferences (Optional)</label>
+                        <input type="text" id="extra_preferences" placeholder="e.g., family-friendly, outdoor seating, quiet for dates">
+                    </div>
+                    <button type="submit" id="submit-btn">
+                        <span>Find Places</span>
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+            </section>
+
+            <section class="results-section">
+                <div id="results" class="results-grid"></div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

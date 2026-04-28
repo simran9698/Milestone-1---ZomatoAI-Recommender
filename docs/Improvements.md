@@ -1,0 +1,3 @@
+- Location should be selected via a dropdown instead of manual input.
+- Add an optional "Extra Preferences" field where users can type custom preferences (e.g., family-friendly, outdoor seating). Update the prompt logic to include this field when provided.
+- Cuisine should be optional and not mandatory for the user to fill.

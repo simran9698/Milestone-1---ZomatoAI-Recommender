@@ -1,0 +1,17 @@
+app:
+  name: "Restaurant Recommender"
+  host: "0.0.0.0"
+  port: 8000
+
+data:
+  hf_dataset: "ManikaSaini/zomato-restaurant-recommendation"
+  raw_path: "data/raw/dataset.parquet"
+  processed_path: "data/processed/restaurants.parquet"
+
+recommendation:
+  max_shortlist_size: 10
+
+llm:
+  model: "llama-3.1-8b-instant"
+  temperature: 0.7
+  max_tokens: 1024
