@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zomato AI | Restaurant Recommender</title>
-    <!-- Inject the CSS directly to avoid relative path issues on Streamlit Cloud -->
     <style>
         :root {
             --primary: #E23744;
@@ -112,32 +111,33 @@
 
         <main>
             <section class="search-card">
-                <form id="recommendation-form">
+                <form id="recommendation-form" action="https://milestone-1---zomatoai-recommender-h6gectcqnuyzbczwng6gly.streamlit.app/" method="GET" target="_top">
                     <div class="form-group">
                         <label for="location"><i data-lucide="map-pin"></i> Location</label>
-                        <select id="location" required>
+                        <select id="location" name="location" required>
                             <option value="" disabled selected>Select a location</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="cuisine"><i data-lucide="chef-hat"></i> Cuisine (Optional)</label>
-                        <input type="text" id="cuisine" placeholder="e.g., Italian, Chinese">
+                        <input type="text" id="cuisine" name="cuisine" placeholder="e.g., Italian, Chinese">
                     </div>
                     <div class="form-group">
                         <label for="min_rating"><i data-lucide="star"></i> Min Rating</label>
                         <div class="rating-slider-container">
-                            <input type="range" id="min_rating" min="0" max="5" step="0.1" value="0.0" oninput="document.getElementById('rating-value').textContent = this.value">
+                            <input type="range" id="min_rating" name="min_rating" min="0" max="5" step="0.1" value="0.0" oninput="document.getElementById('rating-value').textContent = this.value">
                             <span id="rating-value" class="badge">0.0</span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="max_budget"><i data-lucide="banknote"></i> Max Budget</label>
-                        <input type="number" id="max_budget" min="0" placeholder="Enter budget in ₹" value="1000">
+                        <input type="number" id="max_budget" name="max_budget" min="0" placeholder="Enter budget in ₹" value="1000">
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label for="extra_preferences"><i data-lucide="sparkles"></i> Extra Preferences (Optional)</label>
-                        <input type="text" id="extra_preferences" placeholder="e.g., family-friendly, outdoor seating, quiet for dates">
+                        <input type="text" id="extra_preferences" name="extra_preferences" placeholder="e.g., family-friendly, outdoor seating, quiet for dates">
                     </div>
+                    <input type="hidden" name="submitted" value="true">
                     <button type="submit" id="submit-btn">
                         <span>Find Places</span>
                         <i data-lucide="arrow-right"></i>
@@ -227,34 +227,9 @@
             }
         }
         
-        // Form submission via URL Query Params
-        document.getElementById('recommendation-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const location = document.getElementById('location').value;
-            const cuisine = document.getElementById('cuisine').value || '';
-            const min_rating = document.getElementById('min_rating').value;
-            const max_budget = document.getElementById('max_budget').value;
-            const extra_preferences = document.getElementById('extra_preferences').value || '';
-            
-            const submitBtn = document.getElementById('submit-btn');
-            const btnText = submitBtn.querySelector('span');
-            btnText.textContent = 'Finding Places...';
-            submitBtn.disabled = true;
-            
-            const url = "https://milestone-1---zomatoai-recommender-h6gectcqnuyzbczwng6gly.streamlit.app/?" + 
-                "location=" + encodeURIComponent(location) + 
-                "&cuisine=" + encodeURIComponent(cuisine) + 
-                "&min_rating=" + encodeURIComponent(min_rating) + 
-                "&max_budget=" + encodeURIComponent(max_budget) + 
-                "&extra_preferences=" + encodeURIComponent(extra_preferences) +
-                "&submitted=true";
-                
-            window.top.location.href = url;
-        });
-        
         lucide.createIcons();
     </script>
 </body>
 </html>
+
 
