@@ -33,12 +33,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize engines
-@st.cache_resource
-def load_engines():
-    return FilterEngine(), GroqLLMClient()
+filter_engine = FilterEngine()
+llm_client = GroqLLMClient()
 
-filter_engine, llm_client = load_engines()
 
 # Get unique locations
 locations = filter_engine.get_unique_locations()
