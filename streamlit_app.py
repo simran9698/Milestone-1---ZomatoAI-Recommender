@@ -6,7 +6,6 @@ from src.phase2_filtering.filter_engine import FilterEngine
 from src.phase3_llm.prompt_builder import build_prompt
 from src.phase3_llm.groq_client import GroqLLMClient
 from src.phase5_infra.logger import logger
-import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Zomato AI | Restaurant Recommender",
@@ -28,6 +27,9 @@ st.markdown("""
             padding: 0 !important;
             max-width: 100% !important;
         }
+        iframe {
+            border: none !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -38,53 +40,66 @@ def load_engines():
 
 filter_engine, llm_client = load_engines()
 
-# Declare the custom component
-my_component = components.declare_component("zomato_ui", path="streamlit_component")
-
 # Get unique locations
 locations = filter_engine.get_unique_locations()
 
-# State to hold results
-if 'results' not in st.session_state:
-    st.session_state.results = None
+# Get query params
+query_params = st.query_params
 
-# Render the component and capture interactions
-component_value = my_component(
-    locations=locations, 
-    results=st.session_state.results
-)
+results = None
+prefs = {}
 
-# Handle interactions from the custom UI
-if component_value:
-    prefs_dict = component_value
-    
-    # Check if preferences changed to prevent infinite loop
-    if 'last_prefs' not in st.session_state or st.session_state.last_prefs != prefs_dict:
-        st.session_state.last_prefs = prefs_dict
+if query_params.get("submitted") == "true":
+    try:
+        prefs = {
+            "location": query_params.get("location"),
+            "cuisine": query_params.get("cuisine") if query_params.get("cuisine") else None,
+            "min_rating": float(query_params.get("min_rating", 0.0)),
+            "max_budget": float(query_params.get("max_budget", 1000)),
+            "extra_preferences": query_params.get("extra_preferences") if query_params.get("extra_preferences") else None
+        }
         
-        try:
-            prefs = UserPreferences(
-                location=prefs_dict['location'],
-                cuisine=prefs_dict['cuisine'],
-                min_rating=prefs_dict['min_rating'],
-                max_budget=prefs_dict['max_budget'],
-                extra_preferences=prefs_dict['extra_preferences']
-            )
+        user_prefs = UserPreferences(
+            location=prefs["location"],
+            cuisine=prefs["cuisine"],
+            min_rating=prefs["min_rating"],
+            max_budget=prefs["max_budget"],
+            extra_preferences=prefs["extra_preferences"]
+        )
+        
+        filter_result = filter_engine.filter_restaurants(user_prefs)
+        
+        if not filter_result.reason_code.startswith("SUCCESS") or not filter_result.restaurants:
+            results = []
+        else:
+            shortlist = filter_result.restaurants
+            prompt = build_prompt(user_prefs.model_dump(), shortlist)
+            llm_output = llm_client.generate_recommendations(prompt)
+            final_results_raw = llm_client.merge_with_catalog(llm_output, shortlist)
+            results = final_results_raw
             
-            filter_result = filter_engine.filter_restaurants(prefs)
-            
-            if not filter_result.reason_code.startswith("SUCCESS") or not filter_result.restaurants:
-                st.session_state.results = []
-            else:
-                shortlist = filter_result.restaurants
-                prompt = build_prompt(prefs.model_dump(), shortlist)
-                llm_output = llm_client.generate_recommendations(prompt)
-                final_results_raw = llm_client.merge_with_catalog(llm_output, shortlist)
-                
-                st.session_state.results = final_results_raw
-        except Exception as e:
-            st.session_state.results = {"error": str(e)}
-            
-        st.rerun()
+    except Exception as e:
+        results = {"error": str(e)}
+
+# Load index.html
+with open("streamlit_component/index.html", "r", encoding="utf-8") as f:
+    html_content = f.read()
+
+# Inject data
+data_script = f"""
+<script>
+  window.STREAMLIT_DATA = {{
+    locations: {json.dumps(locations)},
+    results: {json.dumps(results)},
+    prefs: {json.dumps(prefs)}
+  }};
+</script>
+"""
+
+html_content = html_content.replace('<script id="data-placeholder"></script>', data_script)
+
+# Render HTML
+st.components.v1.html(html_content, height=2000, scrolling=True)
+
 
 

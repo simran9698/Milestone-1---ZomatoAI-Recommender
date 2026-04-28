@@ -4,7 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zomato AI | Restaurant Recommender</title>
-    <link rel="stylesheet" href="./style.css">
+    <!-- Inject the CSS directly to avoid relative path issues on Streamlit Cloud -->
+    <style>
+        :root {
+            --primary: #E23744;
+            --primary-hover: #b52339; 
+            --accent: #ffb3b1; 
+            --bg-dark: #0b0f19;
+            --text-light: #f8fafc; 
+            --text-muted: #94a3b8; 
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 30%, rgba(183, 18, 42, 0.15), transparent 60%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .hero-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(11, 15, 25, 0.95) 0%, rgba(11, 15, 25, 0.8) 100%);
+            z-index: -1;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+        header { text-align: center; margin-bottom: 2rem; }
+        .logo { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .logo-icon { width: 42px; height: 42px; color: var(--primary); }
+        header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.04em; }
+        header h1 span { color: var(--primary); }
+        header h2 { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; color: white; letter-spacing: -0.03em; line-height: 1.2; }
+        header p { color: var(--text-muted); font-size: 1.25rem; max-width: 600px; margin: 0 auto; display: block; text-align: center; }
+        .search-card {
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); padding: 3rem; border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); margin-bottom: 2rem;
+        }
+        form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; align-items: end; }
+        .form-group { display: flex; flex-direction: column; gap: 0.75rem; }
+        label { font-weight: 600; font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+        input:not([type="range"]), select, .rating-slider-container {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--glass-border);
+            height: 58px; border-radius: 0.75rem; font-size: 1rem; color: white; outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%;
+        }
+        input:not([type="range"]), select { padding: 1rem 1.25rem; }
+        input:focus, select:focus, .rating-slider-container:focus-within {
+            background: rgba(255, 255, 255, 0.12); border-color: var(--primary); box-shadow: 0 0 0 4px rgba(226, 55, 68, 0.2);
+        }
+        .rating-slider-container { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 1.25rem; }
+        .rating-slider-container .badge {
+            background: rgba(226, 55, 68, 0.15); color: var(--primary); padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem; font-weight: 700; font-size: 0.9rem; border: 1px solid rgba(226, 55, 68, 0.2);
+            min-width: 35px; text-align: center;
+        }
+        input[type="range"] { -webkit-appearance: none; appearance: none; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; outline: none; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); }
+        select option { background-color: #111827; color: var(--text-light); }
+        button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white; padding: 1rem 2.5rem; border: none; border-radius: 0.75rem; font-size: 1.1rem;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; transition: all 0.3s ease;
+        }
+        button:hover { transform: translateY(-2px); }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2.5rem; }
+        .restaurant-card {
+            background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border);
+            border-radius: 1.25rem; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-title h3 { font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.25rem; }
+        .rating-badge {
+            background: rgba(226, 55, 68, 0.15); color: var(--primary); padding: 0.4rem 0.8rem;
+            border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;
+        }
+        .card-stats {
+            display: flex; flex-direction: column; gap: 0.75rem; padding: 1.25rem 0;
+            border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
+        }
+        .stat { display: flex; align-items: center; gap: 0.75rem; font-size: 0.95rem; }
+        .explanation {
+            background: rgba(0, 0, 0, 0.25); padding: 1.25rem; border-radius: 0.75rem; font-size: 0.95rem;
+            color: #cbd5e1; border-left: 4px solid var(--primary);
+        }
+        .explanation strong { color: var(--primary); display: block; margin-bottom: 0.5rem; }
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -61,118 +151,110 @@
         </main>
     </div>
 
+    <!-- Data Placeholder -->
+    <script id="data-placeholder"></script>
+
     <script>
-        // Streamlit messaging logic
-        function sendToStreamlit(data) {
-            window.parent.postMessage({
-                type: 'streamlit:setComponentValue',
-                value: data
-            }, '*');
-        }
-
-        // Handle rendering from Streamlit
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'streamlit:render') {
-                const args = event.data.args;
-                
-                // Populate locations if provided
-                if (args.locations) {
-                    const select = document.getElementById('location');
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="" disabled selected>Select a location</option>';
-                    args.locations.forEach(loc => {
-                        const option = document.createElement('option');
-                        option.value = loc;
-                        option.textContent = loc;
-                        if (loc === currentValue || loc === args.selected_location) {
-                            option.selected = true;
-                        }
-                        select.appendChild(option);
-                    });
-                }
-                
-                // Render results if provided
-                if (args.results) {
-                    const resultsContainer = document.getElementById('results');
-                    const submitBtn = document.getElementById('submit-btn');
-                    const btnText = submitBtn.querySelector('span');
-                    
-                    btnText.textContent = 'Find Places';
-                    submitBtn.disabled = false;
-                    
-                    if (args.results.error) {
-                        resultsContainer.innerHTML = `<div class="error-message"><h3>Error</h3><p>${args.results.error}</p></div>`;
-                    } else if (args.results.length === 0) {
-                        resultsContainer.innerHTML = `<div class="info-message"><h3>No recommendations found</h3></div>`;
-                    } else {
-                        let html = '';
-                        args.results.forEach((restaurant, index) => {
-                            html += `
-                                <div class="restaurant-card">
-                                    <div class="card-header">
-                                        <div class="card-title">
-                                            <h3>${restaurant.name}</h3>
-                                            <p>${restaurant.cuisines.join(', ')}</p>
-                                        </div>
-                                        <div class="rating-badge">
-                                            <i data-lucide="star" style="width: 14px; height: 14px; fill: currentColor"></i>
-                                            ${restaurant.rating.toFixed(1)}
-                                        </div>
-                                    </div>
-                                    <div class="card-stats">
-                                        <div class="stat">
-                                            <i data-lucide="map-pin"></i>
-                                            <span>${restaurant.location}</span>
-                                        </div>
-                                        <div class="stat">
-                                            <i data-lucide="banknote"></i>
-                                            <span>₹${restaurant.cost_for_two} for two</span>
-                                        </div>
-                                        <div class="stat">
-                                            <i data-lucide="users"></i>
-                                            <span>${restaurant.votes} votes</span>
-                                        </div>
-                                    </div>
-                                    <div class="explanation">
-                                        <strong>AI Analysis</strong>
-                                        ${restaurant.explanation}
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        resultsContainer.innerHTML = html;
-                    }
-                    if (window.lucide) window.lucide.createIcons();
-                }
+        const data = window.STREAMLIT_DATA || { locations: [], results: null, prefs: {} };
+        
+        // Populate locations
+        const select = document.getElementById('location');
+        data.locations.forEach(loc => {
+            const option = document.createElement('option');
+            option.value = loc;
+            option.textContent = loc;
+            if (data.prefs && data.prefs.location === loc) {
+                option.selected = true;
             }
+            select.appendChild(option);
         });
-
-        // Form submission
+        
+        // Pre-fill preferences
+        if (data.prefs) {
+            if (data.prefs.cuisine) document.getElementById('cuisine').value = data.prefs.cuisine;
+            if (data.prefs.min_rating) {
+                document.getElementById('min_rating').value = data.prefs.min_rating;
+                document.getElementById('rating-value').textContent = data.prefs.min_rating;
+            }
+            if (data.prefs.max_budget) document.getElementById('max_budget').value = data.prefs.max_budget;
+            if (data.prefs.extra_preferences) document.getElementById('extra_preferences').value = data.prefs.extra_preferences;
+        }
+        
+        // Render results
+        const resultsContainer = document.getElementById('results');
+        if (data.results) {
+            if (data.results.error) {
+                resultsContainer.innerHTML = `<div class="error-message"><h3>Error</h3><p>${data.results.error}</p></div>`;
+            } else if (data.results.length === 0) {
+                resultsContainer.innerHTML = `<div class="info-message"><h3>No recommendations found</h3></div>`;
+            } else {
+                let html = '';
+                data.results.forEach((restaurant, index) => {
+                    html += `
+                        <div class="restaurant-card">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <h3>${restaurant.name}</h3>
+                                    <p>${restaurant.cuisines.join(', ')}</p>
+                                </div>
+                                <div class="rating-badge">
+                                    <i data-lucide="star" style="width: 14px; height: 14px; fill: currentColor"></i>
+                                    ${restaurant.rating.toFixed(1)}
+                                </div>
+                            </div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <i data-lucide="map-pin"></i>
+                                    <span>${restaurant.location}</span>
+                                </div>
+                                <div class="stat">
+                                    <i data-lucide="banknote"></i>
+                                    <span>₹${restaurant.cost_for_two} for two</span>
+                                </div>
+                                <div class="stat">
+                                    <i data-lucide="users"></i>
+                                    <span>${restaurant.votes} votes</span>
+                                </div>
+                            </div>
+                            <div class="explanation">
+                                <strong>AI Analysis</strong>
+                                ${restaurant.explanation}
+                            </div>
+                        </div>
+                    `;
+                });
+                resultsContainer.innerHTML = html;
+            }
+        }
+        
+        // Form submission via URL Query Params
         document.getElementById('recommendation-form').addEventListener('submit', (e) => {
             e.preventDefault();
             
             const location = document.getElementById('location').value;
-            const cuisine = document.getElementById('cuisine').value || null;
-            const min_rating = parseFloat(document.getElementById('min_rating').value);
-            const max_budget = parseFloat(document.getElementById('max_budget').value);
-            const extra_preferences = document.getElementById('extra_preferences').value || null;
+            const cuisine = document.getElementById('cuisine').value || '';
+            const min_rating = document.getElementById('min_rating').value;
+            const max_budget = document.getElementById('max_budget').value;
+            const extra_preferences = document.getElementById('extra_preferences').value || '';
             
-            sendToStreamlit({
-                location,
-                cuisine,
-                min_rating,
-                max_budget,
-                extra_preferences
-            });
+            const submitBtn = document.getElementById('submit-btn');
+            const btnText = submitBtn.querySelector('span');
+            btnText.textContent = 'Finding Places...';
+            submitBtn.disabled = true;
+            
+            const url = "https://milestone-1---zomatoai-recommender-h6gectcqnuyzbczwng6gly.streamlit.app/?" + 
+                "location=" + encodeURIComponent(location) + 
+                "&cuisine=" + encodeURIComponent(cuisine) + 
+                "&min_rating=" + encodeURIComponent(min_rating) + 
+                "&max_budget=" + encodeURIComponent(max_budget) + 
+                "&extra_preferences=" + encodeURIComponent(extra_preferences) +
+                "&submitted=true";
+                
+            window.top.location.href = url;
         });
-
-        // Signal that the component is ready
-        window.parent.postMessage({
-            type: 'streamlit:componentReady',
-            apiVersion: 1
-        }, '*');
         
         lucide.createIcons();
     </script>
 </body>
 </html>
+
