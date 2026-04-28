@@ -36,18 +36,22 @@ st.markdown("""
 filter_engine = FilterEngine()
 llm_client = GroqLLMClient()
 
-
 # Get unique locations
 locations = filter_engine.get_unique_locations()
 
 # Get query params
 query_params = st.query_params
 
+# DEBUGGING
+st.write("DEBUG query_params:", dict(query_params))
+
 results = None
 prefs = {}
 
-if query_params.get("submitted") == "true":
+if "submitted" in query_params and str(query_params.get("submitted")).lower() == "true":
+    st.write("DEBUG: submitted is true!")
     try:
+
         prefs = {
             "location": query_params.get("location"),
             "cuisine": query_params.get("cuisine") if query_params.get("cuisine") else None,
