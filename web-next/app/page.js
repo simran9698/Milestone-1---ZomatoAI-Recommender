@@ -1,5 +1,15 @@
+'use client';
+
+import { useEffect } from 'react';
+
 export default function Home() {
   const streamlitUrl = process.env.NEXT_PUBLIC_STREAMLIT_APP_URL;
+
+  useEffect(() => {
+    if (streamlitUrl) {
+      window.location.href = streamlitUrl;
+    }
+  }, [streamlitUrl]);
 
   if (!streamlitUrl) {
     return (
@@ -11,14 +21,11 @@ export default function Home() {
   }
 
   return (
-    <div style={{ margin: 0, padding: 0, height: '100vh', overflow: 'hidden', backgroundColor: '#0e1117' }}>
-      <iframe
-        src={streamlitUrl}
-        style={{ width: '100%', height: '100%', border: 'none' }}
-        title="Zomato AI Recommender"
-        allow="geolocation; microphone; camera"
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif', backgroundColor: '#0e1117', color: '#fafafa' }}>
+      <h1>Redirecting...</h1>
+      <p>Taking you to the Streamlit application.</p>
     </div>
   );
 }
+
 
