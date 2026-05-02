@@ -16,13 +16,9 @@ filter_engine = FilterEngine()
 llm_client = GroqLLMClient()
 cache = RecommendationCache()
 
-web_dir = os.path.join(os.path.dirname(__file__), '../../web')
-os.makedirs(web_dir, exist_ok=True)
-app.mount("/static", StaticFiles(directory=web_dir), name="static")
-
 @app.get("/")
 def read_root():
-    return FileResponse(os.path.join(web_dir, "index.html"))
+    return {"status": "ok", "message": "Restaurant Recommender API is running"}
 
 @app.get("/locations", response_model=list[str])
 def get_locations():
